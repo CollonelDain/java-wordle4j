@@ -27,12 +27,12 @@ public class WordleDictionary {
     public void addWord(String word) {
         String normalized = getNormalizeWord(word);
         if (isCorrect(normalized)) {
-            words.add(word);
+            words.add(normalized);
         }
     }
 
     private boolean isCorrect(String word) {
-        return !words.contains(word);
+        return word.length() == getWordLength() && !words.contains(word);
     }
 
     public String getNormalizeWord(String word) {
@@ -40,7 +40,6 @@ public class WordleDictionary {
         return word.trim().toLowerCase().replace("ё", "е");
     }
 
-    //Replace exception
     public String getRandomWord() {
         if (words.isEmpty()) {
             logger.println("Попытка получить случайное слово из пустого словаря");
