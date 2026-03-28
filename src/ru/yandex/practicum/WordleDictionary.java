@@ -1,8 +1,10 @@
 package ru.yandex.practicum;
 
+import ru.yandex.practicum.exceptions.GameLogicException;
+
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 /*
@@ -14,10 +16,12 @@ public class WordleDictionary {
 
     private final List<String> words;
     private final int wordLength;
+    private final PrintWriter logger;
 
-    public WordleDictionary(int wordLength) {
+    public WordleDictionary(int wordLength, PrintWriter logger) {
         this.words = new ArrayList<>();
         this.wordLength = wordLength;
+        this.logger = logger;
     }
 
     public void addWord(String word) {
@@ -28,7 +32,7 @@ public class WordleDictionary {
     }
 
     private boolean isCorrect(String word) {
-        return word.length() == this.wordLength && !words.contains(word);
+        return !words.contains(word);
     }
 
     public String getNormalizeWord(String word) {
@@ -38,10 +42,11 @@ public class WordleDictionary {
 
     //Replace exception
     public String getRandomWord() {
-        Random random = new Random();
         if (words.isEmpty()) {
-            throw new NullPointerException();
+            logger.println("Попытка получить случайное слово из пустого словаря");
+            throw new GameLogicException("Словарь пуст");
         }
+        Random random = new Random();
         return words.get(random.nextInt(words.size()));
     }
 

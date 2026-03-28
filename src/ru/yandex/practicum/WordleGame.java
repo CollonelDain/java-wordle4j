@@ -1,5 +1,8 @@
 package ru.yandex.practicum;
 
+import ru.yandex.practicum.exceptions.WordNotFoundInDictionary;
+
+import java.io.PrintWriter;
 import java.util.*;
 
 public class WordleGame {
@@ -7,15 +10,18 @@ public class WordleGame {
     private int stepsLeft;
     private final WordleDictionary dictionary;
     private boolean win = false;
+    private final PrintWriter logger;
 
     private final List<String> previousGuesses = new ArrayList<>();
     private final List<String> previousHints = new ArrayList<>();
     private final Set<String> suggestedWords = new HashSet<>();
 
-    public WordleGame(int steps, WordleDictionary dictionary) {
+    public WordleGame(int steps, WordleDictionary dictionary, PrintWriter logger) {
         this.stepsLeft = steps;
         this.dictionary = dictionary;
+        this.logger = logger;
         this.answer = dictionary.getRandomWord();
+        logger.println("Загадано слово: " + answer);
     }
 
     public String getAnswer() {
@@ -31,18 +37,21 @@ public class WordleGame {
     }
 
     public String submitGuess(String word) {
-        String hint = getHint(word);
+        String hint = getHint(word, answer);
         previousGuesses.add(word);
         previousHints.add(hint);
         stepsLeft--;
 
+        logger.println("Ход: " + word + " #" + hint + ", осталось попыток: " + stepsLeft);
+
         if (word.equals(answer)) {
             win = true;
+            logger.println("Игрок победил!");
         }
         return hint;
     }
 
-    public String getHint(String word) {
+    public String getHint(String word, String answer) {
         int n = word.length();
         char[] hint = new char[n];
         Map<Character, Integer> freq = new HashMap<>();
@@ -87,6 +96,7 @@ public class WordleGame {
                     possible.add(candidate);
                 }
             }
+            possible.removeAll(previousGuesses);
             possible.removeAll(suggestedWords);
         }
 
@@ -104,12 +114,14 @@ public class WordleGame {
         }
 
         if (possible.isEmpty()) {
+            logger.println("Не найдено подходящих слов для подсказки, возвращаем случайное");
             return dictionary.getRandomWord();
         }
 
         Random rand = new Random();
         String hint = possible.get(rand.nextInt(possible.size()));
         suggestedWords.add(hint);
+        logger.println("Подсказка: " + hint);
         return hint;
     }
 
@@ -117,7 +129,7 @@ public class WordleGame {
         for (int i = 0; i < previousGuesses.size(); i++) {
             String guess = previousGuesses.get(i);
             String actualHint = previousHints.get(i);
-            String candidateHint = computeHintForCandidate(guess, candidate);
+            String candidateHint = getHint(guess, candidate);
             if (!candidateHint.equals(actualHint)) {
                 return false;
             }
@@ -125,38 +137,13 @@ public class WordleGame {
         return true;
     }
 
-    private String computeHintForCandidate(String guess, String candidate) {
-        int n = guess.length();
-        char[] hint = new char[n];
-        Map<Character, Integer> freq = new HashMap<>();
-        for (char c : candidate.toCharArray()) {
-            freq.put(c, freq.getOrDefault(c, 0) + 1);
-        }
-
-        for (int i = 0; i < n; i++) {
-            char letter = guess.charAt(i);
-            if (letter == candidate.charAt(i)) {
-                hint[i] = '+';
-                freq.put(letter, freq.get(letter) - 1);
-            }
-        }
-
-        for (int i = 0; i < n; i++) {
-            if (hint[i] == '+') continue;
-            char letter = guess.charAt(i);
-            if (freq.getOrDefault(letter, 0) > 0) {
-                hint[i] = '^';
-                freq.put(letter, freq.get(letter) - 1);
-            } else {
-                hint[i] = '-';
-            }
-        }
-        return new String(hint);
-    }
-
-    public boolean isCorrectPlayerWord(String word) {
+    public void validateWord(String word) throws WordNotFoundInDictionary {
         String normalized = dictionary.getNormalizeWord(word);
-        return normalized.length() == dictionary.getWordLength() &&
-                dictionary.isContainsWord(normalized);
+        if (normalized.length() != dictionary.getWordLength()) {
+            throw new WordNotFoundInDictionary("Слово должно содержать " + dictionary.getWordLength() + " букв");
+        }
+        if (!dictionary.isContainsWord(normalized)) {
+            throw new WordNotFoundInDictionary("Слово отсутствует в словаре");
+        }
     }
 }
