@@ -12,6 +12,8 @@ public class WordleGame {
     private boolean win = false;
     private final PrintWriter logger;
 
+    private final Random random;
+
     private final List<String> previousGuesses = new ArrayList<>();
     private final List<String> previousHints = new ArrayList<>();
     private final Set<String> suggestedWords = new HashSet<>();
@@ -21,6 +23,7 @@ public class WordleGame {
         this.dictionary = dictionary;
         this.logger = logger;
         this.answer = dictionary.getRandomWord();
+        this.random = new Random();
         logger.println("Загадано слово: " + answer);
     }
 
@@ -118,8 +121,7 @@ public class WordleGame {
             return dictionary.getRandomWord();
         }
 
-        Random rand = new Random();
-        String hint = possible.get(rand.nextInt(possible.size()));
+        String hint = possible.get(random.nextInt(possible.size()));
         suggestedWords.add(hint);
         logger.println("Подсказка: " + hint);
         return hint;

@@ -17,11 +17,13 @@ public class WordleDictionary {
     private final List<String> words;
     private final int wordLength;
     private final PrintWriter logger;
+    private final Random random;
 
     public WordleDictionary(int wordLength, PrintWriter logger) {
         this.words = new ArrayList<>();
         this.wordLength = wordLength;
         this.logger = logger;
+        this.random = new Random();
     }
 
     public void addWord(String word) {
@@ -45,7 +47,6 @@ public class WordleDictionary {
             logger.println("Попытка получить случайное слово из пустого словаря");
             throw new GameLogicException("Словарь пуст");
         }
-        Random random = new Random();
         return words.get(random.nextInt(words.size()));
     }
 
